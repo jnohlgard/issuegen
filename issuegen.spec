@@ -29,7 +29,7 @@ Show SSH host keys and IP addresses for the machine on the getty
 login console.
 
 %prep
-%autosetup -p1
+%setup -q
 
 %build
 

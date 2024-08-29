@@ -2,7 +2,7 @@ PACKAGE = issuegen
 #TOPSRCDIR ?= $(shell git rev-parse --show-toplevel)
 GITREV = $(shell git rev-parse HEAD)
 #PACKAGE_DIR = $(TOPSRCDIR)/$(PACKAGE)
-PACKAGE_DIR=$(CURDIR)
+PACKAGE_DIR=$(CURDIR)/rpmbuild/
 
 PREFIX ?= /usr
 libexecdir ?= $(PREFIX)/libexec
@@ -29,21 +29,25 @@ install: all
 	install -Dm 0644 $(CURDIR)/udev/rules.d/99-issuegen-netif.rules ${DESTDIR}/${udevrulesdir}/99-${PACKAGE}-netif.rules
 
 rpm:
-	git archive --format=tar --prefix=$(PACKAGE)-$(GITREV)/ -o $(PACKAGE_DIR)/$(PACKAGE)-$(GITREV).tar $(GITREV)
+	mkdir -p $(PACKAGE_DIR)
+	git archive --format=tar --prefix=$(PACKAGE)/ -o $(PACKAGE_DIR)/$(PACKAGE)-$(GITREV).tar $(GITREV)
+	cp $(CURDIR)/$(PACKAGE).spec $(PACKAGE_DIR)/$(PACKAGE).spec
 	sed -i \
 		-e 's/Source0: .*$$/Source0: $(PACKAGE)-$(GITREV).tar/' \
-		-e 's/Version: .*$$/Version: $(GITREV)/' \
-		${PACKAGE}.spec
-	rpmbuild \
+		-e 's/%setup/%setup -n $(PACKAGE)/' \
+		$(PACKAGE_DIR)/$(PACKAGE).spec
+	env -C $(PACKAGE_DIR) rpmbuild \
 		--define "_sourcedir $(PACKAGE_DIR)/" \
 		--define "_specdir $(PACKAGE_DIR)/" \
 		--define "_builddir $(PACKAGE_DIR)/.build" \
 		--define "_srcrpmdir $(PACKAGE_DIR)/rpms" \
 		--define "_rpmdir $(PACKAGE_DIR)/rpms" \
 		--define "_buildrootdir $(PACKAGE_DIR)/.buildroot" \
-		-ba ${PACKAGE}.spec
+		-ba $(PACKAGE).spec
 
 # Remove archives and RPM artifacts from previous builds.
 clean_rpm:
-	rm -rf $(PACKAGE_DIR)/rpms/*; \
-	rm -f $(PACKAGE_DIR)/*.tar
+	$(RM) -r $(PACKAGE_DIR)/.build \
+		$(PACKAGE_DIR)/.buildroot \
+		$(PACKAGE_DIR)/rpms/*; \
+	$(RM) $(PACKAGE_DIR)/*.tar
