@@ -12,6 +12,13 @@ for arg in "$@"; do [ "${arg}" = "--help" ] || continue
   exit 0
 done
 
+for cmd in find ssh-keygen; do
+  if ! command -v "${cmd}" >/dev/null 2>&1; then
+    >&2 printf 'Missing %s, skipping %s\n' "${cmd}" "${0##*/}"
+    exit 0
+  fi
+done
+
 if [ $# -gt 0 ]; then
   outdir="$1"; shift
 fi

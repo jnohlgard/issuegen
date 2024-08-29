@@ -16,6 +16,18 @@ for arg in "$@"; do [ "${arg}" = "--help" ] || continue
   exit 0
 done
 
+for cmd in find; do
+  if ! command -v "${cmd}" >/dev/null 2>&1; then
+    >&2 printf 'Missing %s, skipping %s\n' "${cmd}" "${0##*/}"
+    exit 0
+  fi
+done
+
+if ! [ -e '/sys/class/net/' ]; then
+  >&2 printf 'Missing /sys/class/net/, (sysfs not mounted?) skipping %s\n' "${0##*/}"
+  exit 0
+fi
+
 case "${1:-}" in
   */*)
     outdir="$1"; shift
