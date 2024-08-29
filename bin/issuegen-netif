@@ -1,7 +1,8 @@
 #!/bin/sh
 set -euf
 
-outdir="${RUNTIME_DIRECTORY:-${XDG_RUNTIME_DIR:-/run}}/issue.d"
+outdir="${XDG_RUNTIME_DIR:-/run}/issue.d"
+
 for arg in "$@"; do [ "${arg}" = "--help" ] || continue
   printf 'Usage: %s [output_dir] [up] [nomaster] [ifnames ...]\n' "${0##*/}"
   printf 'Filters:\n'

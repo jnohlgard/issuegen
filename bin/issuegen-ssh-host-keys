@@ -1,8 +1,8 @@
 #!/bin/sh
 set -euf
 
-outdir="${RUNTIME_DIRECTORY:-${XDG_RUNTIME_DIR:-/run}}/issue.d"
-search_default="${CONFIGURATION_DIRECTORY:-/etc}/ssh"
+outdir="${XDG_RUNTIME_DIR:-/run}/issue.d"
+search_default="${CONFIGURATION_DIRECTORY:-/etc/ssh}"
 for arg in "$@"; do [ "${arg}" = "--help" ] || continue
   printf 'Usage: %s [output_dir] [search paths...]\n' "${0##*/}"
   printf '\nExample: %s /run/issue.d /etc/ssh/\n' "${0##*/}"
