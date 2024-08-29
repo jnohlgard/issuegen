@@ -45,5 +45,5 @@ rpm:
 
 # Remove archives and RPM artifacts from previous builds.
 clean_rpm:
-	rm -rf $(PACKAGE_DIR)/rpms/*.rpm; \
+	rm -rf $(PACKAGE_DIR)/rpms/*; \
 	rm -f $(PACKAGE_DIR)/*.tar
