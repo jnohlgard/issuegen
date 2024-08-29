@@ -2,7 +2,7 @@
 %global github_project  issuegen
 
 Name:           issuegen
-Version:        0.1
+Version:        0.2
 Release:        1%{?dist}
 Summary:        Issue generator scripts showing SSH keys and IP addresses
 
@@ -61,5 +61,8 @@ make install DESTDIR=%{buildroot}
 %{_udevrulesdir}/99-%{name}-netif.rules
 
 %changelog
+* Thu Aug 29 2024 Joakim Nohlgård <joakim@nohlgard.se> - 0.2-1
+- Iron out issues with dependencies and packaging
+
 * Thu Aug 29 2024 Joakim Nohlgård <joakim@nohlgard.se> - 0.1-1
 - Initial release
