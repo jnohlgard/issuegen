@@ -1,0 +1,16 @@
+[Unit]
+Description=Write IP address templates for all configured interfaces to %t/issue.d/
+Documentation=man:issue(5) man:agetty(8) man:ip(8) man:ip-link(8)
+After=network-online.target
+
+[Service]
+Type=oneshot
+RuntimeDirectory=issue.d
+RuntimeDirectoryPreserve=yes
+RuntimeDirectoryMode=0755
+# nomaster filters out bridge ports and other enslaved interfaces
+ExecStart=/usr/libexec/issuegen-netif '%t/issue.d/' up nomaster clean
+ExecStartPost=-agetty --reload
+
+[Install]
+WantedBy=multi-user.target

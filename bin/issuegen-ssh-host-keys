@@ -1,0 +1,37 @@
+#!/bin/sh
+set -euf
+
+outdir="${RUNTIME_DIRECTORY:-${XDG_RUNTIME_DIR:-/run}}/issue.d"
+search_default="${CONFIGURATION_DIRECTORY:-/etc}/ssh"
+for arg in "$@"; do [ "${arg}" = "--help" ] || continue
+  printf 'Usage: %s [output_dir] [search paths...]\n' "${0##*/}"
+  printf '\nExample: %s /run/issue.d /etc/ssh/\n' "${0##*/}"
+  printf '\nDefaults:\n'
+  printf '  output_dir=%s\n  search_path=%s\n' \
+    "${outdir}" "${search_default}"
+  exit 0
+done
+
+if [ $# -gt 0 ]; then
+  outdir="$1"; shift
+fi
+if [ $# -eq 0 ]; then
+  set -- "${search_default}"
+fi
+
+outprefix="${outdir}/21-${0##*/}"
+# NB: outheader must lexicographically come before the other file names generated below
+outheader="${outprefix}.issue"
+printf 'SSH host keys:\n' > "${outheader}"
+for f in "$@"; do
+  [ -e "$f" ] || continue
+  find "$f" \
+    -maxdepth 2 \
+    -not -readable -prune -o \
+    -name '*.pub' \
+    -type f \
+    -readable \
+    -exec sh -c 'ssh-keygen -l -f "$1" > "$2_${1##*/}.issue"' "${0##*/}-writer" '{}' "${outprefix}" ';' \
+    -printf "Wrote ${outprefix}_%f.issue\\n" \
+    || :
+done

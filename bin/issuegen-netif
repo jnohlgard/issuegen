@@ -1,0 +1,116 @@
+#!/bin/sh
+set -euf
+
+outdir="${RUNTIME_DIRECTORY:-${XDG_RUNTIME_DIR:-/run}}/issue.d"
+for arg in "$@"; do [ "${arg}" = "--help" ] || continue
+  printf 'Usage: %s [output_dir] [up] [nomaster] [ifnames ...]\n' "${0##*/}"
+  printf 'Filters:\n'
+  printf 'up - only list UP interfaces\n'
+  printf 'nomaster - filter out enslaved interfaces\n'
+  printf 'clean - clean up leftover %s*.issue files\n' '22-issuegen-netif-'
+  printf '\nExample: %s /run/issue.d up nomaster clean eth0 eth1 wlan0\n' "${0##*/}"
+  printf '\nDefault:\n'
+  printf '  output_dir=%s\n' \
+    "${outdir}"
+  exit 0
+done
+
+case "${1:-}" in
+  */*)
+    outdir="$1"; shift
+    ;;
+esac
+mkdir -p "${outdir}"
+
+if [ $# -eq 0 ]; then
+  set -- all
+fi
+up=
+nomaster=
+all=
+clean=
+names=
+for arg in "$@"; do
+  case "${arg}" in
+    '--'*)
+      >&2 printf 'Unknown flag %s\n' "${arg}"
+      exit 2
+      ;;
+    'up')
+      up=up
+      ;;
+    'nomaster')
+      nomaster=nomaster
+      ;;
+    'all'|'*')
+      all=all
+      ;;
+    'clean')
+      clean=clean
+      ;;
+    */*)
+      >&2 printf 'Output dir must be the first argument\n'
+      exit 2
+      ;;
+    *)
+      names="${names} ${arg} "
+      ;;
+  esac
+done
+
+# <linux/if.h>
+IFF_UP=1
+
+if [ -z "${names}" ]; then
+  all=all
+fi
+
+if [ -n "${all}" ]; then
+  names="$(find '/sys/class/net/' -maxdepth 1 -mindepth 1 -printf '%f ')"
+fi
+
+for n in ${names}; do
+  case "${n}" in
+    lo|veth*|podman*)
+      continue
+      ;;
+  esac
+
+  out="${outdir}/22-issuegen-netif-${n}.issue"
+  if [ ! -e "/sys/class/net/${n}/" ]; then
+    [ -z "${clean}" ] || rm -fv "${out}"
+    continue
+  fi
+  if [ -n "${nomaster}" ] && [ -e "/sys/class/net/${n}/master" ]; then
+    [ -z "${clean}" ] || rm -fv "${out}"
+    continue
+  fi
+
+  if [ -n "${up}" ]; then
+    flags="$(cat "/sys/class/net/${n}/flags")"
+    if [ "$((flags & IFF_UP))" -eq 0 ]; then
+      [ -z "${clean}" ] || rm -fv "${out}"
+      continue
+    fi
+  fi
+  printf '%s: \\4{%s} \\6{%s}\n' \
+    "${n}" \
+    "${n}" \
+    "${n}" \
+    > "${out}"
+
+  if [ -s "${out}" ]; then
+    printf 'Wrote %s\n' "${out}"
+  else
+    rm -fv "${out}"
+  fi
+done
+
+if [ -n "${clean}" ] && [ -n "${all}" ]; then
+  # Remove any leftover issue files for non-existant interfaces
+  find "${outdir}/" \
+    -name '22-issuegen-netif-*.issue' \
+    -exec sh -c \
+    's="${1##*/22-issuegen-netif-}"; test -e "/sys/class/net/${s%.issue}/" || rm -vf "${1}"' \
+    "${0##*/}-clean" '{}' \;
+fi
