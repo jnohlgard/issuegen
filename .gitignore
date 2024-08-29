@@ -1,4 +1,4 @@
 *.tar
 .build/
 .buildroot/
-rpms/
+rpmbuild/
