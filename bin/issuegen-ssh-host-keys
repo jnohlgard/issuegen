@@ -26,6 +26,7 @@ if [ $# -eq 0 ]; then
   set -- "${search_default}"
 fi
 
+mkdir -pv "${outdir}"
 outprefix="${outdir}/21-${0##*/}"
 # NB: outheader must lexicographically come before the other file names generated below
 outheader="${outprefix}.issue"

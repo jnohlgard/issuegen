@@ -33,7 +33,8 @@ case "${1:-}" in
     outdir="$1"; shift
     ;;
 esac
-mkdir -p "${outdir}"
+
+mkdir -pv "${outdir}"
 
 if [ $# -eq 0 ]; then
   set -- all
