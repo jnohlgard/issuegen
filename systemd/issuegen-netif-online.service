@@ -9,7 +9,7 @@ RuntimeDirectory=issue.d
 RuntimeDirectoryPreserve=yes
 RuntimeDirectoryMode=0755
 # nomaster filters out bridge ports and other enslaved interfaces
-ExecStart=/usr/libexec/issuegen-netif '%t/issue.d/' up nomaster clean
+ExecStart=/usr/libexec/issuegen/issuegen-netif '%t/issue.d/' up nomaster clean
 ExecStartPost=-agetty --reload
 
 [Install]
